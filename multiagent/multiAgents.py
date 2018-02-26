@@ -138,6 +138,43 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
       Your minimax agent (question 2)
     """
+    def isGameOver(self, state, depth):
+      """
+        check whether the current game state is terminal state
+      """
+      return depth == 0 or state.isWin() or state.isLose()
+    
+    def minimax(self, state):
+      _, move = self.max_play(state,self.depth)
+      return move
+
+    def max_play(self,state,depth):
+        if self.isGameOver(state, depth):
+          return self.evaluationFunction(state), Directions.STOP
+        actions = state.getLegalActions()
+        maxScore = float('-inf')
+        maxIndex = 0
+        for index, score in enumerate([self.min_play(state.generateSuccessor(0, ac), depth, 1) for ac in actions]):
+          if score > maxScore:
+            maxScore = score
+            maxIndex = index
+        return maxScore, actions[maxIndex]
+
+    def min_play(self, state, depth, agent):
+        if self.isGameOver(state, depth):
+          return self.evaluationFunction(state), Directions.STOP
+        actions = state.getLegalActions(agent)
+        scores=[]
+        if agent == state.getNumAgents()-1:
+          scores = [self.max_play(state.generateSuccessor(agent,ac), depth - 1)[0] for ac in actions]
+        else:
+          scores = [self.min_play(state.generateSuccessor(agent,ac), depth, agent + 1) for ac in actions]
+        minScore = min(scores)
+        minIndex = 0
+        for index, score in enumerate(scores):
+          if score == minScore:
+            minIndex = index
+        return minScore, actions[minIndex]
 
     def getAction(self, gameState):
         """
@@ -162,8 +199,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.isLose():
             Returns whether or not the game state is a losing state
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.minimax(gameState)
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
