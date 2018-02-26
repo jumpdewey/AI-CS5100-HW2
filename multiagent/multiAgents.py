@@ -78,9 +78,9 @@ class ReflexAgent(Agent):
         if successorGameState.isWin():
           return float("inf")
         
-        WEIGHT_GHOST = 100
-        WEIGHT_CAPSULE = 500
-        WEIGHT_FOOD = 50
+        WEIGHT_GHOST = 20
+        WEIGHT_CAPSULE = 50
+        WEIGHT_FOOD = 10
         # calculate the manhattan distance between pacman and ghost, then evaluate score
         for ghost in newGhostStates:
           d = manhattanDistance(ghost.getPosition(), newPos)
@@ -89,17 +89,19 @@ class ReflexAgent(Agent):
               score += WEIGHT_GHOST
             else:
               score -= WEIGHT_GHOST
+          else:
+            score -= WEIGHT_GHOST/d
         # calculate food's evaluation
-        distancesToFood = [manhattanDistance(newPos, x) for x in newFood.asList()]
-        if len(distancesToFood):
-            score += WEIGHT_FOOD / min(distancesToFood)
+        distancesToFood = [manhattanDistance(newPos, food) for food in newFood.asList()]
+        if distancesToFood:
+          score += WEIGHT_FOOD / min(distancesToFood)
         # calculate capsule's evaluation
         for capsule in currentGameState.getCapsules():
           d = manhattanDistance(food, newPos)
           if d == 0:
             score += WEIGHT_CAPSULE
           else:
-            score += WEIGHT_FOOD/(d+1)
+            score -= WEIGHT_FOOD/d
         return score
 
 def scoreEvaluationFunction(currentGameState):
