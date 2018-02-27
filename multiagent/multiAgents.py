@@ -206,53 +206,33 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
       Your minimax agent with alpha-beta pruning (question 3)
     """
     def isGameOver(self, state, depth):
-      return depth == 0 or state.isWin() or state.isLose()
+      return depth == self.depth or state.isWin() or state.isLose()
 
-    def minimax(self, state):
-      _, action = self.max_play(state, self.depth, float('inf'), float('-inf'))
-      return action
-      
-    def max_play(self, state, depth, a, b):
+    def minimax(self, state, depth, agent, a=float('-inf'), b=float('inf')):
+      if agent == state.getNumAgents():
+        depth += 1
+        agent = 0
+
       if self.isGameOver(state, depth):
-        return self.evaluationFunction(state)
-      actions = state.getLegalActions()
+        return self.evaluationFunction(state), None
+      return self.helper(state, depth, agent, a, b)
+
+    def helper(self, state, depth, agent, a, b):
+      bestAction = None
       v = float('-inf')
-      bestAction = ''
-      for action in actions:
-        ss = state.generateSuccessor(0, action)
-        tmpMax = self.min_play(ss, 1, depth, a, b)
-        if tmpMax >= v:
-          bestAction = action
-          v = tmpMax
-        if v >= b:
-          return v, bestAction
-        a = max(a, v)
-      return v, bestAction
-    
-    def min_play(self, state, agent, depth, a, b):
-      if self.isGameOver(state, depth):
-        return self.evaluationFunction(state)
-      actions = state.getLegalActions(agent)
-      v = float('inf')
-      bestAction = ''
-      if agent == state.getNumAgents() - 1:
-        for action in actions:
-          ss = state.generateSuccessor(agent, action)
-          tmpMin = self.max_play(ss, depth-1, a, b)
-          if tmpMin <= v:
-            bestAction = action
-            v = tmpMin
-          if v <= a:
+      if agent != 0:
+        v = float('inf')
+      for ac in state.getLegalActions(agent):
+        ss = state.generateSuccessor(agent, ac)
+        score,_ = self.minimax(ss, depth, agent+1, a, b)
+        if agent == 0:
+          v, bestAction = max((v, bestAction), (score, ac))
+          if v > b:
             return v, bestAction
-          b = min(b, v)
-      else:
-        for action in actions:
-          ss = state.generateSuccessor(agent, action)
-          tmpMin = self.min_play(ss, agent+1, depth, a, b)
-          if tmpMin <= v:
-            bestAction = action
-            v = tmpMin
-          if v <= a:
+          a = max(a, v)
+        else:
+          v, bestAction = min((v, bestAction), (score, ac))
+          if v < a:
             return v, bestAction
           b = min(b, v)
       return v, bestAction
@@ -261,7 +241,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        return self.minimax(gameState)
+        _, action = self.minimax(gameState, 0, 0)
+        return action
         util.raiseNotDefined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
