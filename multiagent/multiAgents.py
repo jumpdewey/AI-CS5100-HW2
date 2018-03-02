@@ -92,12 +92,12 @@ class ReflexAgent(Agent):
           else:
             score -= WEIGHT_GHOST/d
         # calculate food's evaluation
-        distancesToFood = [manhattanDistance(newPos, food) for food in newFood.asList()]
-        if distancesToFood:
-          score += WEIGHT_FOOD / min(distancesToFood)
+        disToFood = [manhattanDistance(newPos, food) for food in newFood.asList()]
+        if disToFood:
+          score += WEIGHT_FOOD / min(disToFood)
         # calculate capsule's evaluation
         for capsule in currentGameState.getCapsules():
-          d = manhattanDistance(food, newPos)
+          d = manhattanDistance(capsule, newPos)
           if d == 0:
             score += WEIGHT_CAPSULE
           else:
@@ -298,8 +298,44 @@ def betterEvaluationFunction(currentGameState):
 
       DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    pacmanPos = currentGameState.getPacmanPosition()
+    foodPos = currentGameState.getFood()
+    ghostStates = currentGameState.getGhostStates()
+    scaredTimes = [ghostState.scaredTimer for ghostState in ghostStates]
+    capsules = currentGameState.getCapsules()
+
+    v = currentGameState.getScore()
+    if currentGameState.isWin():
+      return float('inf')
+    WEIGHT_GHOST = 50.0
+    WEIGHT_CAPSULE = 100.0
+    WEIGHT_FOOD = 20.0
+    # calculate the manhattan distance between pacman and each ghost, then evaluate score.
+    for g in ghostStates:
+      d = manhattanDistance(g.getPosition(), pacmanPos)
+      if d == 0:
+        if g.scaredTimer != 0:
+          v += WEIGHT_GHOST
+        else:
+          v -= WEIGHT_GHOST
+      else:
+        v -= WEIGHT_GHOST/d
+    # calculate food's effect by finding the closest food 
+    foodDis = [manhattanDistance(pacmanPos, f) for f in foodPos.asList()]
+    if foodDis:
+      v += WEIGHT_FOOD/min(foodDis)
+    # calculate capsule's effect
+    for capsule in capsules:
+      d = manhattanDistance(capsule, pacmanPos)
+      if d == 0:
+        v += WEIGHT_CAPSULE
+      else:
+        '''
+        if capsule is not at pacman's postion, we will see capsule the same as food
+        since we don't wanna pacman die on the way eating capsule
+        '''
+        v -= WEIGHT_FOOD/d
+    return v
 
 # Abbreviation
 better = betterEvaluationFunction
