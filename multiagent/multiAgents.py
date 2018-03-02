@@ -249,6 +249,36 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
     """
+    def isGameOver(self, state, depth):
+      return depth == self.depth or state.isWin() or state.isLose()
+
+    def expectimax(self, state, depth, agent):
+      if agent == state.getNumAgents():
+        agent = 0
+        depth += 1
+      if self.isGameOver(state, depth):
+        return self.evaluationFunction(state), Directions.STOP
+      if agent == 0:
+        return self.max_play(state, depth)
+      else:
+        return self.exp_play(state, depth, agent)
+    
+    def max_play(self, state, depth):
+      bestAction = None
+      v = float('-inf')
+      actions = state.getLegalActions()
+      for ac in actions:
+        ss = state.generateSuccessor(0, ac)
+        score, _ = self.expectimax(ss, depth, 1)
+        v, bestAction = max((v, bestAction), (score, ac))
+      return v, bestAction
+    
+    def exp_play(self, state, depth, agent):
+      bestAction = None
+      actions = state.getLegalActions(agent)
+      scores = [self.expectimax(state.generateSuccessor(agent, ac), depth, agent+1)[0] for ac in actions]
+      return sum(scores) / float(len(scores)), None
+
 
     def getAction(self, gameState):
         """
@@ -257,7 +287,8 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        "*** YOUR CODE HERE ***"
+        _,action = self.expectimax(gameState, 0, 0)
+        return action
         util.raiseNotDefined()
 
 def betterEvaluationFunction(currentGameState):
