@@ -91,17 +91,17 @@ class ReflexAgent(Agent):
               score -= WEIGHT_GHOST
           else:
             score -= WEIGHT_GHOST/d
-        # calculate food's evaluation
+        # calculate food's effect
         disToFood = [manhattanDistance(newPos, food) for food in newFood.asList()]
         if disToFood:
           score += WEIGHT_FOOD / min(disToFood)
-        # calculate capsule's evaluation
+        # calculate capsule's effect
         for capsule in currentGameState.getCapsules():
           d = manhattanDistance(capsule, newPos)
           if d == 0:
             score += WEIGHT_CAPSULE
           else:
-            score -= WEIGHT_FOOD/d
+            score += WEIGHT_FOOD/d
         return score
 
 def scoreEvaluationFunction(currentGameState):
@@ -307,9 +307,9 @@ def betterEvaluationFunction(currentGameState):
     v = currentGameState.getScore()
     if currentGameState.isWin():
       return float('inf')
-    WEIGHT_GHOST = 50.0
+    WEIGHT_GHOST = 30.0
     WEIGHT_CAPSULE = 100.0
-    WEIGHT_FOOD = 20.0
+    WEIGHT_FOOD = 15.0
     # calculate the manhattan distance between pacman and each ghost, then evaluate score.
     for g in ghostStates:
       d = manhattanDistance(g.getPosition(), pacmanPos)
@@ -334,7 +334,7 @@ def betterEvaluationFunction(currentGameState):
         if capsule is not at pacman's postion, we will see capsule the same as food
         since we don't wanna pacman die on the way eating capsule
         '''
-        v -= WEIGHT_FOOD/d
+        v += WEIGHT_FOOD/d
     return v
 
 # Abbreviation
